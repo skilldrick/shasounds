@@ -1,4 +1,4 @@
-import {getAudioBuffer, getAudioBuffers} from './ajax.js';
+import {getAudioBuffer} from './ajax.js';
 
 const ctx = new (window.AudioContext || window.webkitAudioContext)();
 
@@ -9,8 +9,6 @@ const createSource = (buffer) => {
   return source;
 };
 
-const getBuffers = bufferMap => getAudioBuffers(ctx, bufferMap);
-
 const getCurrentTime = () => ctx.currentTime;
 
-module.exports = {ctx, createSource, getBuffers, getCurrentTime};
+module.exports = {ctx, createSource, getCurrentTime};
