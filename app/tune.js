@@ -3,7 +3,7 @@ import {ctx} from './audio.js';
 const sha = '4739f5c1ddb71e212f1af2df667ef20ee2cc3ec5';
 const parts = sha.split('').map((num) => parseInt(num, 16));
 
-const tune = parts.slice(0, 6);
+const tune = parts.slice(0, 8);
 
 const C = 0;
 const C$ = 1;
@@ -37,33 +37,53 @@ const scales = {
 };
 
 const playNote = (note, when, length) => {
-  const osc = createOsc(noteToFreq(note));
+  const [osc, gain] = createOsc(noteToFreq(note));
+  const targetGain = 0.2;
+  const fadeTime = 0.03;
+
+  gain.gain.setValueAtTime(0, when);
+  gain.gain.linearRampToValueAtTime(targetGain, when + fadeTime);
+  gain.gain.setValueAtTime(targetGain, when + length);
+  gain.gain.linearRampToValueAtTime(0, when + length + fadeTime);
+
   osc.start(when);
-  osc.stop(when + length);
+  osc.stop(when + length + fadeTime);
 };
 
 const createOsc = (frequency) => {
+  const gain = ctx.createGain();
+  gain.gain.value = 0;
+  gain.connect(ctx.destination);
+
   const osc = ctx.createOscillator();
   osc.type = 'triangle';
   osc.frequency.value = frequency;
-
-  const gain = ctx.createGain();
-  gain.gain.value = 0.2;
-  gain.connect(ctx.destination);
   osc.connect(gain);
-  return osc;
+
+  return [osc, gain];
 };
 
+const noteToFreq = (note) => 220 * Math.pow(2, note / 12);
+
+/*
 const playScale = (scale) => {
   scale.forEach((note, index) => playNote(note, ctx.currentTime + index / 2, 0.5));
 };
 
-
-const noteToFreq = (note) => 440 * Math.pow(2, note / 12);
-
-
-console.log(tune);
-
 playScale(scales.maj);
+*/
+
+const pickRandom = (arr) => arr[Math.floor(Math.random() * arr.length)];
+
+for (let i = 0; i < 32; i++) {
+  for (let j = 0; j < 3; j++) {
+    playNote(pickRandom(scales.majPent), ctx.currentTime + i / 3, 1 / 3);
+  }
+}
+
+console.log(pickRandom(scales.blues));
+
+
+
 
 module.exports = {};
