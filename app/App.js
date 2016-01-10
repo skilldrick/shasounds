@@ -5,13 +5,11 @@ import tune from './tune.js';
 class App extends Component {
   render() {
     return (
-      <div>
-      Hello world
-      </div>
+      <small>
+        <a href="https://github.com/skilldrick/shasounds">github</a>
+      </small>
     );
   }
-
 }
-
 
 render(<App />, document.getElementById('root'));
