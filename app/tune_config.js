@@ -15,6 +15,14 @@ const getRandomSha = () => {
   return sha;
 };
 
+// Convert one 4-bit value into two 2-bit values
+const splitValue = (value) => [value & 3, value >> 2];
+
+// Convert array of 4-bit values to twice-as-long array of 2-bit values
+const splitValues = (values) => _.flatten(
+  values.map(splitValue)
+);
+
 const tuneConfig = (sha) => {
   sha = sha || getRandomSha();
 
@@ -24,24 +32,26 @@ const tuneConfig = (sha) => {
   const rhythmParts = parts.slice(11, 16);
 
   const scalePart = parts[16];
-  const transpose1 = parts[17];
-  const transpose2 = parts[18];
+  const transposes = parts.slice(17, 19);
+
+  const [distortion, delayAmount] = splitValue(parts[19]);
+  const [delayTime, delayDistortion] = splitValue(parts[20]);
 
   const scale = get(scales, scalePart);
 
-  // Split each part of rhythmParts in two with bit masking and shifting
-  const rhythm = _.flatten(
-    rhythmParts.map(
-      (part) => [part & 3, part >> 2]
-    )
-  ).map((part) => part + 1);
+  const rhythm = splitValues(rhythmParts).map((part) => part + 1);
+
 
   return {
     scaleName: scale.name,
     scale: scale.scale,
-    tune: tune,
-    rhythm: rhythm,
-    transposes: parts.slice(17, 19)
+    tune,
+    rhythm,
+    transposes,
+    distortion,
+    delayAmount,
+    delayTime,
+    delayDistortion
   };
 };
 
