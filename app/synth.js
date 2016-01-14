@@ -1,32 +1,42 @@
 import {ctx} from './audio.js';
-import {addDelay, addDistortion} from './fx.js';
+import {createDelayNode, createDistortionNode} from './fx.js';
+import {getAudioBuffer} from './ajax.js';
+import {connect} from './util.js';
 
 const bus1 = ctx.createGain();
 const bus2 = ctx.createGain();
 const filter = ctx.createBiquadFilter();
-filter.connect(ctx.destination);
+const convolver = ctx.createConvolver();
 filter.frequency.value = 5000;
 
-addDelay({
-  source: bus1,
-  destination: bus2,
+const delay = createDelayNode({
   delayTime: 0.666,
-  feedback: 0.2,
+  feedback: 0.5,
   dryMix: 1,
-  wetMix: 0.4,
+  wetMix: 1,
   cutoff: 2000
 });
 
-addDistortion([bus2], filter, 1.0);
+const distortion = createDistortionNode(1.2);
+
+connect(
+  bus1,
+  bus2,
+  filter,
+  delay,
+  distortion,
+  //convolver,
+  ctx.destination
+);
 
 const noteToFreq = (note) => 110 * Math.pow(2, note / 12);
 
 const playNote = (note, when, length) => {
   const gain = ctx.createGain();
   gain.gain.value = 0;
-  gain.connect(bus1);
 
-  const osc = createOsc(noteToFreq(note), gain);
+  const osc = createOsc(noteToFreq(note));
+  connect(osc, gain, bus1);
 
   const targetGain = 0.2;
   const fadeTime = 0.03;
@@ -40,7 +50,7 @@ const playNote = (note, when, length) => {
   osc.stop(when + length + fadeTime);
 };
 
-const createOsc = (frequency, output) => {
+const createOsc = (frequency) => {
 
   const osc = ctx.createOscillator();
   osc.frequency.value = frequency;
@@ -65,7 +75,6 @@ const createOsc = (frequency, output) => {
 
   const wave = ctx.createPeriodicWave(real, imag);
   osc.setPeriodicWave(wave);
-  osc.connect(output);
 
   return osc;
 };

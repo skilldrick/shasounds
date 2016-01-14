@@ -1,14 +1,15 @@
 import {ctx} from './audio.js';
+import {connect} from './util.js';
 
-const addDelay = (options) => {
+const createDelayNode = (options) => {
   const dryMix = options.dryMix || 1;
   const wetMix = options.wetMix || 0.5;
   const delayTime = options.delayTime || 0.5;
   const feedback = options.feedback || 0.2;
   const cutoff = options.cutoff || 5000;
-  const source = options.source;
-  const destination = options.destination;
 
+  const input = ctx.createGain();
+  const output = ctx.createGain();
   const delay = ctx.createDelay(3);
   const feedbackGain = ctx.createGain();
   const dryMixNode = ctx.createGain();
@@ -23,33 +24,35 @@ const addDelay = (options) => {
   filter.frequency.value = cutoff;
   filter.Q.value = .5;
 
-  source.connect(dryMixNode);
-  dryMixNode.connect(destination);
+  // dry chain
+  connect(input, dryMixNode, output);
 
-  source.connect(filter);
-  delay.connect(filter);
+  // wet chain
+  connect(input, filter, feedbackGain, delay, wetMixNode, output);
 
-  filter.connect(feedbackGain);
-  feedbackGain.connect(delay);
-  delay.connect(wetMixNode);
-  wetMixNode.connect(destination);
+  // feedback
+  connect(delay, filter);
 
-  //source +-> dryMixNode ------------------------------------*-> destination
-  //       `> filter -> feedbackGain -> delay -+> wetMixNode -'
-  //            ^------------------------------'
+  return {
+    input: input,
+    connect: (node) => output.connect(node)
+  };
+
+  //input +-> dryMixNode ------------------------------------*-> output
+  //      `> filter -> feedbackGain -> delay -+> wetMixNode -'
+  //           ^------------------------------'
 };
 
-const addDistortion = (sources, destination, distortion) => {
-  const distortionNode = ctx.createWaveShaper();
+const createDistortionNode = (distortion) => {
+  const waveShaperNode = ctx.createWaveShaper();
 
-  distortionNode.curve = makeDistortionCurve((item) => {
+  waveShaperNode.curve = makeDistortionCurve((item) => {
     return Math.pow(Math.sin(item * Math.PI / 2), 1 / distortion);
   });
 
-  distortionNode.oversample = '4x';
+  waveShaperNode.oversample = '4x';
 
-  sources.forEach((source) => source.connect(distortionNode));
-  distortionNode.connect(destination);
+  return waveShaperNode;
 };
 
 const makeDistortionCurve = (func) => {
@@ -80,4 +83,4 @@ const makeDistortionCurve = (func) => {
   return new Float32Array(curve);
 };
 
-module.exports = {addDelay, addDistortion};
+module.exports = {createDelayNode, createDistortionNode};
