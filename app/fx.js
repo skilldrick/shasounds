@@ -57,14 +57,19 @@ const createDelayNode = (options) => {
 };
 
 const createDistortionNode = (distortion) => {
-  const waveShaperNode = ctx.createWaveShaper();
+  const hardDistortion = (item) => {
+    const deg = Math.PI / 180;
+    const k = (distortion - 1) * 200;
+    return ( 3 + k ) * item * 20 * deg / ( Math.PI + k * Math.abs(item) );
+  };
 
-  waveShaperNode.curve = makeDistortionCurve((item) => {
+  const softDistortion = (item) => {
     return Math.pow(Math.sin(item * Math.PI / 2), 1 / distortion);
-  });
+  };
 
+  const waveShaperNode = ctx.createWaveShaper();
+  waveShaperNode.curve = makeDistortionCurve(softDistortion);
   waveShaperNode.oversample = '4x';
-
   return waveShaperNode;
 };
 
