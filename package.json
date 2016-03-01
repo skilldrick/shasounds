@@ -11,10 +11,6 @@
   "license": "ISC",
   "dependencies": {
     "immutable": "^3.7.5",
-    "react": "^0.14.0",
-    "react-dom": "^0.14.2",
-    "react-redux": "^4.0.0",
-    "redux": "^3.0.0",
     "underscore": "^1.8.3",
     "webpack-dev-server": "^1.12.1"
   },
