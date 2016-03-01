@@ -1,15 +1,16 @@
 import {ctx} from './audio.js';
-import {createDelayNode, createDistortionNode} from './fx.js';
+import fx from './fx.js';
 import {getAudioBuffer} from './ajax.js';
 import {connect} from './util.js';
 
-const bus1 = ctx.createGain();
-const bus2 = ctx.createGain();
-const filter = ctx.createBiquadFilter();
-const convolver = ctx.createConvolver();
-filter.frequency.value = 5000;
 
-const delay = createDelayNode({
+const oscOut = ctx.createGain();
+
+const filter = fx.createFilterNode(3000);
+const distortion = fx.createDistortionNode(1.2);
+const reverb = fx.createReverbNode();
+
+const delay = fx.createDelayNode({
   delayTime: 0.666,
   feedback: 0.5,
   dryMix: 1,
@@ -17,15 +18,12 @@ const delay = createDelayNode({
   cutoff: 2000
 });
 
-const distortion = createDistortionNode(1.2);
-
 connect(
-  bus1,
-  bus2,
-  filter,
+  oscOut,
   delay,
   distortion,
-  //convolver,
+  reverb,
+  filter,
   ctx.destination
 );
 
@@ -36,7 +34,7 @@ const playNote = (note, when, length) => {
   gain.gain.value = 0;
 
   const osc = createOsc(noteToFreq(note));
-  connect(osc, gain, bus1);
+  connect(osc, gain, oscOut);
 
   const targetGain = 0.2;
   const fadeTime = 0.03;

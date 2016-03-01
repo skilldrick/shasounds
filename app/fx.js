@@ -1,5 +1,23 @@
 import {ctx} from './audio.js';
+import {getAudioBuffer} from './ajax.js';
 import {connect} from './util.js';
+
+const createFilterNode = (freq) =>{
+  const filter = ctx.createBiquadFilter();
+  filter.frequency.value = freq;
+  return filter;
+};
+
+const createReverbNode = () => {
+  const convolver = ctx.createConvolver();
+  const impulseResponse = "Conic Long Echo Hall.wav";
+
+  getAudioBuffer(ctx, impulseResponse).then(buffer => {
+    convolver.buffer = buffer;
+  });
+
+  return convolver;
+};
 
 const createDelayNode = (options) => {
   const dryMix = options.dryMix || 1;
@@ -14,15 +32,13 @@ const createDelayNode = (options) => {
   const feedbackGain = ctx.createGain();
   const dryMixNode = ctx.createGain();
   const wetMixNode = ctx.createGain();
-  const filter = ctx.createBiquadFilter();
+  const filter = createFilterNode(cutoff);
+
   delay.delayTime.value = delayTime;
   feedbackGain.gain.value = feedback;
   dryMixNode.gain.value = dryMix;
   wetMixNode.gain.value = wetMix;
 
-  filter.type = 'lowpass';
-  filter.frequency.value = cutoff;
-  filter.Q.value = .5;
 
   // dry chain
   connect(input, dryMixNode, output);
@@ -83,4 +99,4 @@ const makeDistortionCurve = (func) => {
   return new Float32Array(curve);
 };
 
-module.exports = {createDelayNode, createDistortionNode};
+module.exports = {createFilterNode, createReverbNode, createDelayNode, createDistortionNode};
