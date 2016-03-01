@@ -1,6 +1,6 @@
 import {ctx} from './audio.js';
 import {getAudioBuffer} from './ajax.js';
-import {connect} from './util.js';
+import {connect, node} from './util.js';
 
 const createFilterNode = (freq) =>{
   const filter = ctx.createBiquadFilter();
@@ -49,10 +49,7 @@ const createDelayNode = (options) => {
   // feedback
   connect(delay, filter);
 
-  return {
-    input: input,
-    connect: (node) => output.connect(node)
-  };
+  return node(input, output);
 
   //input +-> dryMixNode ------------------------------------*-> output
   //      `> filter -> feedbackGain -> delay -+> wetMixNode -'
