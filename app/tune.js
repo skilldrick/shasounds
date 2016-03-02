@@ -1,5 +1,7 @@
 import {playNote} from './synth.js';
+import {getCurrentTime} from './audio.js';
 import tuneConfig from './tune_config.js';
+import {collectedPromises} from './promise_collector.js';
 
 //const sha = '4739f5c1ddb71e212f1af2df667ef20ee2cc3ec5';
 
@@ -36,20 +38,23 @@ const slicedRhythm = config.rhythm;//.slice(0, 6);
 const playNoteAtIndex = (index, speed, transpose = 0, reverse = false) => {
   const note = getNote(config.scale, get(maybeReverse(reverse, slicedTune), index + transpose));
   const [when, length] = getTimeAndLength(maybeReverse(reverse, slicedRhythm), index);
-  playNote(note, when / speed, length / speed);
-}
-
-for (let i = 0; i < 64; i++) {
-  if (i % 2 == 0) {
-    playNoteAtIndex(i / 2, 2, config.transposes[0], true);
-  }
-  if (i % 4 == 0) {
-    playNoteAtIndex(i / 4, 1);
-  }
-  playNoteAtIndex(i, 4, config.transposes[1]);
+  playNote(note, getCurrentTime() + when / speed, length / speed);
 }
 
 
+const play = () => {
+  for (let i = 0; i < 64; i++) {
+    if (i % 2 == 0) {
+      playNoteAtIndex(i / 2, 2, config.transposes[0], true);
+    }
+    if (i % 4 == 0) {
+      playNoteAtIndex(i / 4, 1);
+    }
+    playNoteAtIndex(i, 4, config.transposes[1]);
+  }
+}
 
+// Only play when everything is loaded
+collectedPromises().then(play);
 
 module.exports = {};

@@ -13,9 +13,12 @@ module.exports = {
         loader: 'babel',
         query: {
           stage: 0
-        },
-        include: __dirname + '/app'
+        }
       },
+      {
+        test: /\.wav$/,
+        loader: 'file',
+      }
     ]
   },
   plugins: [
