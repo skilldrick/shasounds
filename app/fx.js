@@ -21,12 +21,14 @@ const createReverbNode = () => {
 };
 
 const createDelayNode = (options) => {
+  // Set up options
   const dryMix = options.dryMix || 1;
   const wetMix = options.wetMix || 0.5;
   const delayTime = options.delayTime || 0.5;
   const feedback = options.feedback || 0.2;
   const cutoff = options.cutoff || 5000;
 
+  // Create nodes
   const input = ctx.createGain();
   const output = ctx.createGain();
   const delay = ctx.createDelay(3);
@@ -35,26 +37,27 @@ const createDelayNode = (options) => {
   const wetMixNode = ctx.createGain();
   const filter = createFilterNode(cutoff);
 
+  // Configure nodes
   delay.delayTime.value = delayTime;
   feedbackGain.gain.value = feedback;
   dryMixNode.gain.value = dryMix;
   wetMixNode.gain.value = wetMix;
 
+  // Node graph:
+  // input -> dryMixNode ------------------------------------+-> output
+  //   `----> filter -> feedbackGain -> delay -> wetMixNode -'
+  //            ^-------------------------'
 
-  // dry chain
+  // Connect dry chain
   connect(input, dryMixNode, output);
 
-  // wet chain
+  // Connect wet chain
   connect(input, filter, feedbackGain, delay, wetMixNode, output);
 
-  // feedback
+  // Connect feedback
   connect(delay, filter);
 
   return node(input, output);
-
-  //input +-> dryMixNode ------------------------------------*-> output
-  //      `> filter -> feedbackGain -> delay -+> wetMixNode -'
-  //           ^------------------------------'
 };
 
 const createDistortionNode = (distortion) => {
