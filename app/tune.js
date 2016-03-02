@@ -1,7 +1,8 @@
 import {playNote} from './synth.js';
-import {getCurrentTime} from './audio.js';
+import {ctx, getCurrentTime} from './audio.js';
 import tuneConfig from './tune_config.js';
 import {collectedPromises} from './promise_collector.js';
+import {iOSAudioContextHack} from './ios_audio_context_hack.js';
 
 //const sha = '4739f5c1ddb71e212f1af2df667ef20ee2cc3ec5';
 
@@ -41,7 +42,6 @@ const playNoteAtIndex = (index, speed, transpose = 0, reverse = false) => {
   playNote(note, getCurrentTime() + when / speed, length / speed);
 }
 
-
 const play = () => {
   for (let i = 0; i < 64; i++) {
     if (i % 2 == 0) {
@@ -55,6 +55,6 @@ const play = () => {
 }
 
 // Only play when everything is loaded
-collectedPromises().then(play);
+collectedPromises().then(iOSAudioContextHack(play));
 
 module.exports = {};
