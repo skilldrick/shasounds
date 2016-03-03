@@ -3,11 +3,16 @@ import {ctx, getCurrentTime} from './audio.js';
 import tuneConfig from './tune_config.js';
 import {collectedPromises} from './promise_collector.js';
 import {iOSAudioContextHack} from './ios_audio_context_hack.js';
+import {getQuery} from './location.js';
 
 //const sha = '4739f5c1ddb71e212f1af2df667ef20ee2cc3ec5';
 
-const config = tuneConfig();
+const config = tuneConfig(getQuery());
 console.log(JSON.stringify(config));
+
+// This is pretty gross but meh
+const link = document.getElementById('current-sha');
+link.href = "?" + config.sha;
 
 const get = (arr, index) => arr[index % arr.length];
 

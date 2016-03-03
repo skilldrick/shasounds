@@ -23,8 +23,12 @@ const splitValues = (values) => _.flatten(
   values.map(splitValue)
 );
 
-const tuneConfig = (sha) => {
-  sha = sha || getRandomSha();
+
+// sha must be 40 character hex string
+const validate = (sha) => sha.match(/^[0-9a-fA-F]{40}$/);
+
+const tuneConfig = (input) => {
+  const sha = validate(input) ? input : getRandomSha();
 
   const parts = sha.split('').map((num) => parseInt(num, 16));
 
@@ -43,6 +47,7 @@ const tuneConfig = (sha) => {
 
 
   return {
+    sha: sha,
     scaleName: scale.name,
     scale: scale.scale,
     tune,
