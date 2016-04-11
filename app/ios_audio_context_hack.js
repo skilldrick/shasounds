@@ -1,4 +1,4 @@
-import {ctx} from './audio.js';
+import {ctx} from 'sine/audio';
 
 const runAfterAction = (func) => {
   // Show instructions
@@ -21,7 +21,7 @@ const iOSAudioContextHack = (func) => {
   if (ctx.state === 'suspended') {
     runAfterAction(func);
   } else {
-    func();
+    return func;
   }
 };
 

@@ -1,25 +1,38 @@
-import {ctx} from './audio.js';
-import fx from './fx.js';
-import {getAudioBuffer} from './ajax.js';
-import {connect} from './util.js';
+import {ctx} from 'sine/audio';
+import {connect, node} from 'sine/util';
+import {EasyHarmonicSynth} from 'sine/synth';
+import {Distortion, FeedbackDelay, Reverb} from 'sine/fx';
+import {createGain, createFilter} from 'sine/nodes';
+import impulseResponse from '../assets/conic_echo_long_hall_short.mp3';
+import getAudioBuffer from 'sine/ajax';
 
-
-const oscOut = ctx.createGain();
-
-const filter = fx.createFilterNode(3000);
-const distortion = fx.createDistortionNode(1.2);
-const reverb = fx.createReverbNode();
-
-const delay = fx.createDelayNode({
-  delayTime: 0.666,
-  feedback: 0.5,
-  dryMix: 1,
-  wetMix: 1,
-  cutoff: 2000
+const synthLoaded = getAudioBuffer(impulseResponse).then(buffer => {
+  console.log('loaded');
+  reverb.convolver.buffer = buffer;
 });
 
+const filter = createFilter(3000);
+const distortion = new Distortion(1.2);
+const reverb = new Reverb(0.5);
+
+const delay = new FeedbackDelay({
+  delayTime: 0.666,
+  feedback: 0.5,
+  mix: 0.5,
+  cutoff: 1000
+});
+
+const synth = new EasyHarmonicSynth({
+  attack: 0.1,
+  decay: 0.3,
+  sustain: 0.6,
+  release: 0.1
+});
+
+synth.setLowHigh(0);
+
 connect(
-  oscOut,
+  synth,
   delay,
   distortion,
   reverb,
@@ -27,54 +40,4 @@ connect(
   ctx.destination
 );
 
-const noteToFreq = (note) => 110 * Math.pow(2, note / 12);
-
-const playNote = (note, when, length) => {
-  const gain = ctx.createGain();
-  gain.gain.value = 0;
-
-  const osc = createOsc(noteToFreq(note));
-  connect(osc, gain, oscOut);
-
-  const targetGain = 0.2;
-  const fadeTime = 0.03;
-
-  gain.gain.setValueAtTime(0, when);
-  gain.gain.linearRampToValueAtTime(targetGain, when + fadeTime);
-  gain.gain.setValueAtTime(targetGain, when + length);
-  gain.gain.linearRampToValueAtTime(0, when + length + fadeTime);
-
-  osc.start(when);
-  osc.stop(when + length + fadeTime);
-};
-
-const createOsc = (frequency) => {
-
-  const osc = ctx.createOscillator();
-  osc.frequency.value = frequency;
-
-  const real = new Float32Array(6);
-  const imag = new Float32Array(6);
-
-  real[0] = 0;
-  imag[0] = 0;
-  real[1] = 0.6;
-  imag[1] = 0;
-  real[2] = 0.5;
-  imag[2] = 0;
-  real[3] = 0.5;
-  imag[3] = 0;
-  real[4] = 0.2;
-  imag[4] = 0;
-  real[5] = 0.2;
-  imag[5] = 0;
-  real[6] = 0.1;
-  imag[6] = 0;
-
-  const wave = ctx.createPeriodicWave(real, imag);
-  osc.setPeriodicWave(wave);
-
-  return osc;
-};
-
-module.exports = {playNote};
+module.exports = {synth, synthLoaded};

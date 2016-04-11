@@ -1,4 +1,4 @@
-import _ from 'underscore';
+import _ from 'lodash';
 import scales from './scales.js';
 
 const getRandomHexDigit = () => Math.floor(Math.random() * 16).toString(16);

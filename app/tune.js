@@ -1,7 +1,6 @@
-import {playNote} from './synth.js';
-import {ctx, getCurrentTime} from './audio.js';
+import {getCurrentTime} from 'sine/audio';
+import {synth, synthLoaded} from './synth.js';
 import tuneConfig from './tune_config.js';
-import {collectedPromises} from './promise_collector.js';
 import {iOSAudioContextHack} from './ios_audio_context_hack.js';
 import {getQuery} from './location.js';
 
@@ -31,7 +30,7 @@ const getTimeAndLength = (arr, index) => {
 
 const getNote = (scale, index) => {
   const [arrIndex, numLoops] = getIndexAndLoops(scale, index);
-  return scale[arrIndex] + numLoops * 12;
+  return scale[arrIndex] + numLoops * 12 - 24;
 };
 
 const maybeReverse = (shouldReverse, arr) => shouldReverse ? arr.slice().reverse() : arr;
@@ -44,10 +43,11 @@ const slicedRhythm = config.rhythm;//.slice(0, 6);
 const playNoteAtIndex = (index, speed, transpose = 0, reverse = false) => {
   const note = getNote(config.scale, get(maybeReverse(reverse, slicedTune), index + transpose));
   const [when, length] = getTimeAndLength(maybeReverse(reverse, slicedRhythm), index);
-  playNote(note, getCurrentTime() + when / speed, length / speed);
+  synth.playNote(note, getCurrentTime() + when / speed, length / speed);
 }
 
 const play = () => {
+  console.log('play');
   for (let i = 0; i < 64; i++) {
     if (i % 2 == 0) {
       playNoteAtIndex(i / 2, 2, config.transposes[0], true);
@@ -59,7 +59,7 @@ const play = () => {
   }
 }
 
-// Only play when everything is loaded
-collectedPromises().then(iOSAudioContextHack(play));
+
+synthLoaded.then(iOSAudioContextHack(play));
 
 module.exports = {};
